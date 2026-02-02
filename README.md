@@ -60,9 +60,8 @@ MIT License
 
 ## 👤 Author
 
-[Your Name]
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
+Ali Alavi
+- LinkedIn: [Your Profile](https://linkedin.com/in/ali-alavi-cs)
 
 ---
 
