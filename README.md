@@ -73,13 +73,20 @@ Graduate school applications require compelling SOPs, but many applicants strugg
 - [ ] Deploy Gradio demo to HuggingFace Spaces
 - [ ] Generate sample SOPs for portfolio
 
-## 🚀 Getting Started
+## ⚠️ Known Limitations
 
-Coming soon...
+- **Model Size:** Llama 3.2 1B is a lightweight model with limited capacity
+- **Output Quality:** Generated SOPs may contain generic language and placeholders
+- **Dataset:** Some training samples contained template-style text
+- **Training:** Limited to 5 epochs due to time constraints
 
-## 📈 Results
+### Future Improvements
 
-Coming soon...
+- [ ] Train with larger model (Llama 3.2 3B or Mistral 7B)
+- [ ] Clean dataset to remove placeholders and improve quality
+- [ ] Increase training epochs (10-15)
+- [ ] Add post-processing to improve output formatting
+- [ ] Implement evaluation metrics (BLEU, ROUGE)
 
 ## 🤝 Contributing
 
@@ -91,8 +98,16 @@ MIT License
 
 ## 👤 Author
 
-Ali Alavi
-- LinkedIn: [Your Profile](https://linkedin.com/in/ali-alavi-cs)
+**Ali Alavi**  
+CS Master's Student | AI/ML Enthusiast
+
+- 📧 Email: seyed.alavi@studenti.unime.it
+- 💼 LinkedIn: [linkedin.com/in/ali-alavi-cs](https://linkedin.com/in/ali-alavi-cs)
+
+---
+
+**Project Timeline:** February 2026  
+**Status:** ✅ Completed (v1.0 - Learning Project)
 
 ---
 
