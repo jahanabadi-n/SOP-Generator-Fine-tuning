@@ -1,114 +1,157 @@
-# SOP Generator - Fine-tuning LLM for Graduate School Applications
+# SOP Generator — LLM Fine-tuning for Graduate Applications
 
-Fine-tuning a Large Language Model (Llama 3.1 8B) to generate high-quality Statements of Purpose for graduate school applications.
+A learning-focused AI project for preparing a Statement of Purpose (SOP) dataset and fine-tuning an instruction-following language model to generate graduate school SOP drafts.
+
+The current repository focuses on the data preparation stage and documents the planned fine-tuning workflow.
+
+---
 
 ## 📋 Project Overview
 
-This project implements an end-to-end pipeline for:
-- Collecting and augmenting Statement of Purpose (SOP) datasets
-- Fine-tuning open-source LLMs using QLoRA
-- Deploying a web interface for SOP generation
+This project is designed as an end-to-end SOP generation pipeline:
+
+- Collect and organize Statement of Purpose examples
+- Augment and format SOP data for instruction fine-tuning
+- Split the dataset into training and validation sets
+- Fine-tune an open-source language model using LoRA / QLoRA
+- Evaluate generated SOP quality
+- Build a simple inference interface for generation
+
+---
 
 ## 🎯 Motivation
 
-Graduate school applications require compelling SOPs, but many applicants struggle with writing them. This project aims to democratize access to quality SOP writing assistance through fine-tuned AI.
+Graduate school applicants often struggle to structure strong Statements of Purpose. This project explores how fine-tuned language models can assist with generating structured SOP drafts while preserving a clear, domain-specific writing style.
+
+This is a learning project focused on practical LLM fine-tuning, dataset preparation, and model evaluation.
+
+---
 
 ## 🛠️ Technical Stack
 
-- **Model:** Llama 3.1 8B
-- **Fine-tuning:** QLoRA (4-bit quantization)
-- **Framework:** PyTorch, Transformers, PEFT
-- **Deployment:** Gradio + HuggingFace Spaces
+- Python
+- Jupyter Notebook / Google Colab
+- Hugging Face Transformers
+- Datasets
+- PyTorch
+- PEFT / LoRA
+- Gradio planned for demo deployment
+
+---
 
 ## 📁 Repository Structure
-```
+
+```text
+SOP-Generator-Fine-tuning/
+│
 ├── notebooks/
-│   ├── 01_data_preparation.ipynb    # Data collection & preprocessing
-│   ├── 02_model_training.ipynb      # Fine-tuning pipeline
-│   ├── 03_evaluation.ipynb          # Model evaluation
-│   └── 04_inference.ipynb           # Inference & testing
-├── src/                              # Source code (if needed)
-├── data/                             # Dataset (gitignored)
-├── requirements.txt                  # Dependencies
+│   └── 01_data_preparation.ipynb   # Dataset loading, formatting, splitting, and export
+│
+├── requirements.txt                # Python dependencies
 └── README.md
 ```
-## ✅ Project Status
 
-**Completed!** Model successfully fine-tuned on Kaggle.
+---
 
-### Training Results
+## ✅ Current Status
 
-- **Model:** Llama 3.2 1B Instruct (1.23B parameters)
-- **Method:** LoRA (Low-Rank Adaptation)
-- **Trainable Parameters:** 0.2% (~2.8M / 1.23B)
-- **Training Loss:** 2.18 → 1.86
-- **Validation Loss:** 2.33 → 2.08
-- **Training Time:** ~12 minutes (5 epochs)
-- **Hardware:** Kaggle T4 GPU (15GB VRAM)
-- **Dataset:** 400 training + 100 validation SOPs
+**Status:** Work in Progress
 
-### Dataset Composition
+Completed:
 
-- **Original SOPs:** 60 real samples
-- **Augmented SOPs:** 300 (via GPT-4o paraphrasing)
-- **Synthetic SOPs:** 140 (GPT-4o generated)
-- **Total:** 500 SOPs across 10 CS fields
+- Built a data preparation notebook
+- Loaded SOP files from multiple sources
+- Parsed SOP text and field metadata
+- Converted samples into instruction-tuning chat format
+- Split the dataset into training and validation sets
+- Exported prepared data to JSONL format
 
-### Notebooks
+Planned:
 
-1. ✅ `01_data_preparation.ipynb` - Data collection, augmentation, and formatting
-2. ✅ `02_model_training.ipynb` - Fine-tuning with LoRA on Kaggle
+- Add model fine-tuning notebook
+- Add evaluation notebook
+- Add inference notebook
+- Add Gradio demo
+- Add sample generated SOP outputs
 
-### Key Hyperparameters
+---
 
-- Learning Rate: 2e-4
-- Batch Size: 2 (effective: 8 with gradient accumulation)
-- Epochs: 5
-- LoRA rank (r): 16
-- Max sequence length: 1024 tokens
+## 📊 Dataset Preparation
 
-### Next Steps
+The data preparation notebook processes a dataset of 500 SOP examples:
 
-- [ ] Create evaluation notebook (`03_evaluation.ipynb`)
-- [ ] Deploy Gradio demo to HuggingFace Spaces
-- [ ] Generate sample SOPs for portfolio
+- **60** original SOP samples
+- **300** augmented SOP samples
+- **140** synthetic SOP samples
+- **500** total examples
+
+The dataset is converted into chat-style instruction fine-tuning format:
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "You are an expert at writing compelling Statements of Purpose for graduate school applications."},
+    {"role": "user", "content": "Write a Statement of Purpose for a Master's program in Computer Science."},
+    {"role": "assistant", "content": "...SOP text..."}
+  ]
+}
+```
+
+Split:
+
+- **400** training examples
+- **100** validation examples
+
+---
+
+## 📓 Notebooks
+
+| Notebook | Description | Status |
+|---|---|---|
+| [`01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb) | Loads SOP data, parses metadata, formats examples, splits dataset, and exports JSONL files | Completed |
+| `02_model_training.ipynb` | Fine-tuning pipeline using LoRA / QLoRA | Planned |
+| `03_evaluation.ipynb` | Evaluation of generated SOP quality | Planned |
+| `04_inference.ipynb` | Inference and demo testing | Planned |
+
+---
+
+## 🚀 Planned Training Setup
+
+Target setup:
+
+- Open-source instruction model such as Llama 3.x Instruct
+- LoRA or QLoRA parameter-efficient fine-tuning
+- Hugging Face `Trainer` / `SFTTrainer`
+- Kaggle or Colab GPU environment
+- Evaluation using validation loss and qualitative SOP samples
+
+---
 
 ## ⚠️ Known Limitations
 
-- **Model Size:** Llama 3.2 1B is a lightweight model with limited capacity
-- **Output Quality:** Generated SOPs may contain generic language and placeholders
-- **Dataset:** Some training samples contained template-style text
-- **Training:** Limited to 5 epochs due to time constraints
+- Dataset quality depends on original, augmented, and synthetic SOP quality
+- Some samples may contain generic or template-like language
+- No deployed inference demo yet
+- Model fine-tuning notebook is not yet included in the repository
+- Generated SOPs should be treated as drafts, not final application essays
 
-### Future Improvements
+---
 
-- [ ] Train with larger model (Llama 3.2 3B or Mistral 7B)
-- [ ] Clean dataset to remove placeholders and improve quality
-- [ ] Increase training epochs (10-15)
-- [ ] Add post-processing to improve output formatting
-- [ ] Implement evaluation metrics (BLEU, ROUGE)
+## 🔮 Future Improvements
 
-## 🤝 Contributing
+- Add fine-tuning notebook and training logs
+- Add sample generated SOPs before and after fine-tuning
+- Add evaluation metrics such as ROUGE or BERTScore
+- Add Gradio demo for interactive SOP generation
+- Improve dataset cleaning and remove low-quality templates
+- Add prompt templates for different graduate fields
 
-This is a personal project for learning purposes.
-
-## 📝 License
-
-MIT License
+---
 
 ## 👤 Author
 
 **Ali Alavi**  
-CS Master's Student | AI/ML Enthusiast
+AI/ML Enthusiast
 
-- 📧 Email: seyed.alavi@studenti.unime.it
-- 💼 LinkedIn: [linkedin.com/in/ali-alavi-cs](https://linkedin.com/in/ali-alavi-cs)
-
----
-
-**Project Timeline:** February 2026  
-**Status:** ✅ Completed (v1.0 - Learning Project)
-
----
-
-**Status:** 🚧 Work in Progress
+- GitHub: [salavii](https://github.com/salavii)
+- LinkedIn: [linkedin.com/in/ali-alavi-cs](https://linkedin.com/in/ali-alavi-cs)
