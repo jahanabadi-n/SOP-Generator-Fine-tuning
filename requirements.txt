@@ -1,0 +1,14 @@
+torch
+transformers
+datasets
+peft
+accelerate
+trl
+bitsandbytes
+sentencepiece
+jupyter
+notebook
+gradio
+numpy
+pandas
+scikit-learn
