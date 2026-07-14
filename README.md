@@ -1,106 +1,87 @@
-# SOP Generator — LLM Fine-tuning for Graduate Applications
+# 📝 SOP Generator — Instruction Fine-Tuning for Statement of Purpose Drafting
 
-A learning-focused AI project for preparing a Statement of Purpose (SOP) dataset and fine-tuning an instruction-following language model to generate graduate school SOP drafts.
-
-The current repository focuses on the data preparation stage and documents the planned fine-tuning workflow.
+Fine-tuning **Llama 3.2 1B Instruct** with **LoRA** to generate structured Statement of Purpose (SOP) drafts for graduate applications. Covers the full pipeline: dataset construction → instruction formatting → parameter-efficient fine-tuning → inference.
 
 ---
 
-## 📋 Project Overview
+## 📊 Results
 
-This project is designed as an end-to-end SOP generation pipeline:
+| Metric | Value |
+|---|---|
+| Base model | Llama 3.2 1B Instruct |
+| Method | LoRA (r=16, α=32, dropout=0.05) |
+| Trainable parameters | **3.4M / 1.24B → 0.275%** |
+| Training steps | 250 (5 epochs) |
+| **Train loss** | 2.177 → **1.864** |
+| **Validation loss** | 2.328 → **2.082** |
+| Training time | ~12 min on a single Tesla T4 |
+| Adapter size | 14 MB |
 
-- Collect and organize Statement of Purpose examples
-- Augment and format SOP data for instruction fine-tuning
-- Split the dataset into training and validation sets
-- Fine-tune an open-source language model using LoRA / QLoRA
-- Evaluate generated SOP quality
-- Build a simple inference interface for generation
+**Loss trajectory:**
 
----
+| Step | Train Loss | Val Loss |
+|---|---|---|
+| 50 | 2.177 | 2.328 |
+| 100 | 2.029 | 2.237 |
+| 150 | 2.055 | 2.147 |
+| 200 | 1.945 | 2.089 |
+| 250 | 1.864 | **2.082** |
 
-## 🎯 Motivation
-
-Graduate school applicants often struggle to structure strong Statements of Purpose. This project explores how fine-tuned language models can assist with generating structured SOP drafts while preserving a clear, domain-specific writing style.
-
-This is a learning project focused on practical LLM fine-tuning, dataset preparation, and model evaluation.
-
----
-
-## 🛠️ Technical Stack
-
-- Python
-- Jupyter Notebook / Google Colab
-- Hugging Face Transformers
-- Datasets
-- PyTorch
-- PEFT / LoRA
-- Gradio planned for demo deployment
+Validation loss decreased monotonically and had **not plateaued** at step 250 — the model was still improving when training stopped. See [Future Work](#-future-work).
 
 ---
 
-## 📁 Repository Structure
+## 🧠 Technical Highlights
 
-```text
-SOP-Generator-Fine-tuning/
-│
-├── notebooks/
-│   └── 01_data_preparation.ipynb   # Dataset loading, formatting, splitting, and export
-│
-├── requirements.txt                # Python dependencies
-└── README.md
+### Assistant-only loss masking
+Loss is computed **only on the assistant's response**, not on the system/user prompt. Prompt tokens are masked with `-100` so the model learns to *generate* SOPs rather than to *reproduce instructions*:
+
+```python
+labels = input_ids.copy()
+prompt_len = min(len(prompt_ids), len(labels))
+labels[:prompt_len] = [-100] * prompt_len   # mask the prompt
 ```
 
----
+This is a meaningful correctness detail — training on the full sequence dilutes the learning signal and degrades instruction-following.
 
-## ✅ Current Status
+### Custom causal-LM collator
+A custom data collator pads variable-length sequences while padding labels with `-100`, so padding tokens are excluded from the loss.
 
-**Status:** Work in Progress
-
-Completed:
-
-- Built a data preparation notebook
-- Loaded SOP files from multiple sources
-- Parsed SOP text and field metadata
-- Converted samples into instruction-tuning chat format
-- Split the dataset into training and validation sets
-- Exported prepared data to JSONL format
-
-Planned:
-
-- Add model fine-tuning notebook
-- Add evaluation notebook
-- Add inference notebook
-- Add Gradio demo
-- Add sample generated SOP outputs
+### Parameter-efficient fine-tuning
+LoRA adapters applied to attention projections (`q_proj`, `k_proj`, `v_proj`, `o_proj`) — training 0.275% of parameters instead of all 1.24B, making the run feasible on a free-tier T4.
 
 ---
 
-## 📊 Dataset Preparation
+## 📁 Dataset
 
-The data preparation notebook processes a dataset of 500 SOP examples:
+500 SOP examples, converted to chat-format instruction data:
 
-- **60** original SOP samples
-- **300** augmented SOP samples
-- **140** synthetic SOP samples
-- **500** total examples
+| Source | Count |
+|---|---|
+| Real-world SOPs | 60 |
+| Augmented variations | 300 |
+| Synthetic SOPs | 140 |
+| **Total** | **500** |
 
-The dataset is converted into chat-style instruction fine-tuning format:
+Split 80/20 → **400 train / 100 validation** (seed=42).
+
+Format:
 
 ```json
 {
   "messages": [
-    {"role": "system", "content": "You are an expert at writing compelling Statements of Purpose for graduate school applications."},
+    {"role": "system", "content": "You are an expert at writing compelling Statements of Purpose..."},
     {"role": "user", "content": "Write a Statement of Purpose for a Master's program in Computer Science."},
     {"role": "assistant", "content": "...SOP text..."}
   ]
 }
 ```
 
-Split:
+---
 
-- **400** training examples
-- **100** validation examples
+## 🛠 Stack
+
+`Python` · `PyTorch` · `Hugging Face Transformers` · `PEFT (LoRA)` · `Datasets` · `Kaggle/Colab GPU`
 
 ---
 
@@ -108,50 +89,50 @@ Split:
 
 | Notebook | Description | Status |
 |---|---|---|
-| [`01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb) | Loads SOP data, parses metadata, formats examples, splits dataset, and exports JSONL files | Completed |
-| `02_model_training.ipynb` | Fine-tuning pipeline using LoRA / QLoRA | Planned |
-| `03_evaluation.ipynb` | Evaluation of generated SOP quality | Planned |
-| `04_inference.ipynb` | Inference and demo testing | Planned |
-
----
-
-## 🚀 Planned Training Setup
-
-Target setup:
-
-- Open-source instruction model such as Llama 3.x Instruct
-- LoRA or QLoRA parameter-efficient fine-tuning
-- Hugging Face `Trainer` / `SFTTrainer`
-- Kaggle or Colab GPU environment
-- Evaluation using validation loss and qualitative SOP samples
+| [`01_data_preparation.ipynb`](notebooks/01_data_preparation.ipynb) | Loads SOPs, parses field metadata, formats to chat schema, splits, exports JSONL | ✅ Complete |
+| [`02_model_training.ipynb`](notebooks/02_model_training.ipynb) | LoRA fine-tuning with assistant-only loss + inference test | ✅ Complete |
+| `03_evaluation.ipynb` | Quantitative evaluation (ROUGE / BERTScore) vs. base model | 🚧 Open |
+| `04_demo.ipynb` | Gradio inference demo | 🚧 Open |
 
 ---
 
 ## ⚠️ Known Limitations
 
-- Dataset quality depends on original, augmented, and synthetic SOP quality
-- Some samples may contain generic or template-like language
-- No deployed inference demo yet
-- Model fine-tuning notebook is not yet included in the repository
-- Generated SOPs should be treated as drafts, not final application essays
+- **No quantitative evaluation yet.** Only validation loss and qualitative inspection — no ROUGE/BERTScore, no base-vs-tuned comparison.
+- **Undertrained.** Val loss was still falling at step 250; more epochs or a larger LoRA rank would likely help.
+- **Small base model.** Llama 3.2 1B is a size compromise for a free T4. Outputs are coherent but contain template placeholders (`[University Name]`, `[Your City]`).
+- **Dataset skew.** 440 of 500 examples are augmented or synthetic; real-world diversity is limited.
+- **Outputs are drafts, not final essays.** Not intended to replace an applicant's own writing.
 
 ---
 
-## 🔮 Future Improvements
+## 🤝 Contributing
 
-- Add fine-tuning notebook and training logs
-- Add sample generated SOPs before and after fine-tuning
-- Add evaluation metrics such as ROUGE or BERTScore
-- Add Gradio demo for interactive SOP generation
-- Improve dataset cleaning and remove low-quality templates
-- Add prompt templates for different graduate fields
+This project has clear, self-contained open pieces. Contributions welcome — see [Issues](../../issues).
+
+**Good first contributions:**
+
+1. **Evaluation notebook (`03_evaluation.ipynb`)** — Compare base Llama 3.2 1B vs. the fine-tuned adapter on the 100 validation SOPs using ROUGE-L and BERTScore. Report a before/after table.
+2. **Gradio demo (`04_demo.ipynb`)** — Load the LoRA adapter, expose a field-selection dropdown + generate button, deploy to Hugging Face Spaces.
+3. **Extended training run** — Val loss hadn't plateaued. Re-run with more epochs / higher LoRA rank and report the new loss curve.
+4. **Dataset cleaning** — Detect and remove near-duplicate or template-heavy augmented samples.
+5. **Placeholder handling** — The model emits `[University Name]`-style placeholders. Either template them properly at inference or filter them from training data.
+
+To contribute: fork → branch → PR. Please include your loss curves / metrics in the PR description.
+
+---
+
+## 🔮 Future Work
+
+- Quantitative eval (ROUGE, BERTScore, base-vs-tuned)
+- Longer training run — val loss had not converged
+- Scale to Llama 3.1 8B with QLoRA (4-bit) on a larger GPU
+- Deployed Gradio demo on HF Spaces
+- Field-specific prompt templates (CS, Biology, Business, …)
 
 ---
 
 ## 👤 Author
 
-**Ali Alavi**  
-AI/ML Enthusiast
-
-- GitHub: [salavii](https://github.com/salavii)
-- LinkedIn: [linkedin.com/in/ali-alavi-cs](https://linkedin.com/in/ali-alavi-cs)
+**Ali Alavi** — M.Sc. Computer Science, University of Messina
+[LinkedIn](https://www.linkedin.com/in/ali-alavi-cs/) · [GitHub](https://github.com/salavii)
