@@ -8,7 +8,7 @@ Fine-tuning **Llama 3.2 1B Instruct** with **LoRA** to generate structured State
 
 | Metric | Value |
 |---|---|
-| Base model | Llama 3.1 8B Instruct |
+| Base model | Llama 3.2 1B Instruct |
 | Method | LoRA (r=16, α=32, dropout=0.05) |
 | Trainable parameters | **3.4M / 1.24B → 0.275%** |
 | Training steps | 250 (5 epochs) |
